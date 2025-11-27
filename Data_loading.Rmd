@@ -1,0 +1,108 @@
+---
+title: "Data loading"
+output: html_document
+date: "2025-10-28"
+---
+
+```{r}
+#install.packages("pacman")
+library(pacman)
+p_load(haven,
+       here,
+       stargazer,
+       summarytools,
+       readxl,
+       dplyr,
+       lubridate,
+       ggplot2,
+       summarytools,
+       devtools,
+       zoo,
+       tidyverse,
+       dataverse,
+       devtools,
+       WDI,
+       wbwdi,
+       readxl,
+       wid)
+```
+
+## Inequality data
+
+```{r The Standardized World Income Inequality Database}
+# Direct download using file URL
+url <- "https://dataverse.harvard.edu/api/access/datafile/11667866?version=14.0"
+temp_dir <- tempdir()
+zip_path <- file.path(temp_dir, "swiid9_9.zip")
+
+download.file(url, destfile = zip_path, mode = "wb")
+
+# Unzip all contents
+unzip(zip_path, exdir = temp_dir)
+
+# Listing the extracted files
+list.files(temp_dir)
+
+# List extracted folder contents
+subfolder <- file.path(temp_dir, "swiid9_9")
+list.files(subfolder)
+
+# Loading summary CSV file
+csv_file <- file.path(subfolder, "swiid9_9_summary.csv")
+swiid_summary <- read.csv(csv_file)
+head(swiid_summary)
+
+# Loading RDA file (100 dataframes -> maybe we should rather work with the summary)
+rda_file <- file.path(subfolder, "swiid9_9.rda")
+load(rda_file)
+
+```
+
+Add which indicators we will need:
+
+```{r World Inequality Database}
+# https://github.com/world-inequality-database/wid-r-tool
+devtools::install_github("world-inequality-database/wid-r-tool")
+
+latam_codes2 <- c("AR", "BO","BR", "CL", "CO", "CR", "CU", "DO", "EC","SV", "GT", "HN", "MX", "NI", "PA", "PY", "PE", "UY", "VE")
+
+data_wid <- download_wid(
+  indicators = "shweal", # Shares of personal wealth
+  areas = latam_codes2,
+  years = 1990:2020,
+  perc = c("p99p100", "p90p100") #Top 1% and top 10%
+)
+head(data)
+
+#Note: adjust "indicators" and "perc" depending on what you need
+```
+
+## Macroeconomic Indicators
+
+Fix errors:
+
+```{r World Bank: WDI}
+WDIsearch('gdp growth') #NY.GDP.MKTP.KD.ZG - GDP growth (annual %)
+WDIsearch('inflation') #NY.GDP.DEFL.87.ZG - Inflation, GDP deflator (annual %)
+WDIsearch('trade') #NE.TRD.GNFS.ZS - Trade (% of GDP)
+WDIsearch('unemployment') #JI.UEM.1564.ZS - Unemployment rate, aged 15-64, total (% of total labor force in working age)
+WDIsearch("fiscal") #GC.BAL.CASH.CD - Fiscal balance, cash surplus/deficit (current US$)
+WDIsearch("Central government debt") #GC.DOD.TOTL.GD.ZS - Central government debt, total (% of GDP)
+
+
+data_wdi <- wdi_get(latam_codes2, 
+                   c("NY.GDP.MKTP.KD.ZG",
+                     "NY.GDP.DEFL.87.ZG", 
+                     "NE.TRD.GNFS.ZS", 
+                     "JI.UEM.1564.ZS", 
+                     "GC.BAL.CASH.CD", 
+                     "GC.DOD.TOTL.GD.ZS"), 
+                   progress = TRUE)
+```
+
+## Financial Crises Indicators
+
+```{r Comprehensive typology: Nguyen et al.}
+# Had to save locally and load data to github :(((((
+crises_df <- read_excel("Data/FinancialCrises_Nguyen.xlsx")
+```
