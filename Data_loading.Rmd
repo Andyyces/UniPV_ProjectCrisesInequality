@@ -43,19 +43,12 @@ unzip(zip_path, exdir = temp_dir)
 # Listing the extracted files
 list.files(temp_dir)
 
-# List extracted folder contents
-subfolder <- file.path(temp_dir, "swiid9_9")
-list.files(subfolder)
+# After unzipping
+list.files(temp_dir, recursive = TRUE)
+rda_file <- file.path(temp_dir, "swiid9_9", "swiid9_9.rda")  
 
-# Loading summary CSV file
-csv_file <- file.path(subfolder, "swiid9_9_summary.csv")
-swiid_summary <- read.csv(csv_file)
-head(swiid_summary)
-
-# Loading RDA file (100 dataframes -> maybe we should rather work with the summary)
-rda_file <- file.path(subfolder, "swiid9_9.rda")
-load(rda_file)
-
+# Loading both files: swiid_summary for visualization and swiid for regressions and capturing obejct names
+obj_names <- load(rda_file)
 ```
 
 Add which indicators we will need:
@@ -66,38 +59,41 @@ devtools::install_github("world-inequality-database/wid-r-tool")
 
 latam_codes2 <- c("AR", "BO","BR", "CL", "CO", "CR", "CU", "DO", "EC","SV", "GT", "HN", "MX", "NI", "PA", "PY", "PE", "UY", "VE")
 
-data_wid <- download_wid(
-  indicators = "shweal", # Shares of personal wealth
+data_wid_long <- download_wid(
+  indicators = c("shweal", "ahweal","sptinc", "aptinc"), # Shares of personal wealth
   areas = latam_codes2,
-  years = 1990:2020,
-  perc = c("p99p100", "p90p100") #Top 1% and top 10%
+  years = 1960:2020,
+  perc = c("p99p100", "p0p50") #Top 1% and bottom 50% percentiles
 )
-head(data)
+# "shweal": Share of net personal wealth
+# "ahweal": Average net personal wealth
+# "sptinc": Share of pre-tax national income
+# "aptinc": Average pre-tax national income
 
-#Note: adjust "indicators" and "perc" depending on what you need
+head(data_wid_long)
+#Already comes in long format 
 ```
 
 ## Macroeconomic Indicators
 
-Fix errors:
-
 ```{r World Bank: WDI}
 WDIsearch('gdp growth') #NY.GDP.MKTP.KD.ZG - GDP growth (annual %)
-WDIsearch('inflation') #NY.GDP.DEFL.87.ZG - Inflation, GDP deflator (annual %)
+WDIsearch('inflation') #NY.GDP.DEFL.KD.ZG - Inflation, GDP deflator (annual %)
 WDIsearch('trade') #NE.TRD.GNFS.ZS - Trade (% of GDP)
 WDIsearch('unemployment') #JI.UEM.1564.ZS - Unemployment rate, aged 15-64, total (% of total labor force in working age)
 WDIsearch("fiscal") #GC.BAL.CASH.CD - Fiscal balance, cash surplus/deficit (current US$)
 WDIsearch("Central government debt") #GC.DOD.TOTL.GD.ZS - Central government debt, total (% of GDP)
 
 
-data_wdi <- wdi_get(latam_codes2, 
-                   c("NY.GDP.MKTP.KD.ZG",
-                     "NY.GDP.DEFL.87.ZG", 
-                     "NE.TRD.GNFS.ZS", 
-                     "JI.UEM.1564.ZS", 
-                     "GC.BAL.CASH.CD", 
-                     "GC.DOD.TOTL.GD.ZS"), 
-                   progress = TRUE)
+data_wdi <- WDI(latam_codes2,
+                c("NY.GDP.MKTP.KD.ZG",
+                  "NY.GDP.DEFL.KD.ZG", 
+                  "NE.TRD.GNFS.ZS", 
+                  "JI.UEM.1564.ZS", 
+                  "GC.BAL.CASH.CD", #Did not work on 30.11. for some reason -> could be server issue, I am solving later
+                  "GC.DOD.TOTL.GD.ZS"),
+                start = 1960,
+                end = 2020)
 ```
 
 ## Financial Crises Indicators
