@@ -62,7 +62,7 @@ latam_codes2 <- c("AR", "BO","BR", "CL", "CO", "CR", "CU", "DO", "EC","SV", "GT"
 data_wid_long <- download_wid(
   indicators = c("shweal", "ahweal","sptinc", "aptinc"), # Shares of personal wealth
   areas = latam_codes2,
-  years = 1960:2020,
+  years = 1960:2019,
   perc = c("p99p100", "p0p50") #Top 1% and bottom 50% percentiles
 )
 # "shweal": Share of net personal wealth
@@ -93,7 +93,7 @@ data_wdi <- WDI(latam_codes2,
                   "GC.BAL.CASH.CD", #Did not work on 30.11. for some reason -> could be server issue, I am solving later
                   "GC.DOD.TOTL.GD.ZS"),
                 start = 1960,
-                end = 2020)
+                end = 2019)
 ```
 
 ## Financial Crises Indicators
