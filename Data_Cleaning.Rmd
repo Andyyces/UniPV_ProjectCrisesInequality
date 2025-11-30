@@ -1,0 +1,204 @@
+---
+title: "Data_Cleaning"
+output: html_document
+date: "2025-11-28"
+---
+
+```{r}
+library(pacman)
+p_load(dplyr,
+       ggplot2,
+       tidyr,
+       patchwork,
+       countrycode,
+       hmisc,
+       naniar)
+```
+
+## Inequality Data
+
+### WID
+
+```{r}
+# Reshape the data
+data_wid_wide <- data_wid_long %>%
+  pivot_wider(
+    names_from = c(variable, percentile),
+    values_from = value,
+    names_sep = "_"
+  )
+
+#Adding labels to wide data format manually:(((
+# Pre-tax income - Adults 20+ (992j)
+label(data_wid_wide$aptinc992j_p0p50) <- "Average pre-tax income, bottom 50% (adults 20+)"
+label(data_wid_wide$aptinc992j_p99p100) <- "Average pre-tax income, top 1% (adults 20+)"
+
+# Pre-tax income - All ages (999j)
+label(data_wid_wide$aptinc999j_p0p50) <- "Average pre-tax income, bottom 50% (all ages)"
+label(data_wid_wide$aptinc999j_p99p100) <- "Average pre-tax income, top 1% (all ages)"
+
+# Pre-tax income shares - Adults 20+ (992j)
+label(data_wid_wide$sptinc992j_p0p50) <- "Pre-tax income share, bottom 50% (adults 20+)"
+label(data_wid_wide$sptinc992j_p99p100) <- "Pre-tax income share, top 1% (adults 20+)"
+
+# Pre-tax income shares - All ages (999j)
+label(data_wid_wide$sptinc999j_p0p50) <- "Pre-tax income share, bottom 50% (all ages)"
+label(data_wid_wide$sptinc999j_p99p100) <- "Pre-tax income share, top 1% (all ages)"
+
+# Household wealth - Adults 20+ (992j)
+label(data_wid_wide$ahweal992j_p0p50) <- "Average household wealth, bottom 50% (adults 20+)"
+label(data_wid_wide$ahweal992j_p99p100) <- "Average household wealth, top 1% (adults 20+)"
+
+# Household wealth - All ages (999j)
+label(data_wid_wide$ahweal999j_p0p50) <- "Average household wealth, bottom 50% (all ages)"
+label(data_wid_wide$ahweal999j_p99p100) <- "Average household wealth, top 1% (all ages)"
+
+# Household wealth shares - Adults 20+ (992j)
+label(data_wid_wide$shweal992j_p0p50) <- "Household wealth share, bottom 50% (adults 20+)"
+label(data_wid_wide$shweal992j_p99p100) <- "Household wealth share, top 1% (adults 20+)"
+
+# Household wealth shares - All ages (999j)
+label(data_wid_wide$shweal999j_p0p50) <- "Household wealth share, bottom 50% (all ages)"
+label(data_wid_wide$shweal999j_p99p100) <- "Household wealth share, top 1% (all ages)"
+
+
+
+# Convert ISO 2-letter codes to full country names
+data_wid_wide$country <- countrycode(data_wid_wide$country, 
+                                      origin = "iso2c", 
+                                      destination = "country.name")
+```
+
+### SWIID
+
+## Macroeconomic Indicators
+
+```{r}
+data_wdi_clean <- data_wdi %>%
+  rename(country = country, year = year) %>%
+  select(-iso3c, -iso2c)  # Remove duplicate country code columns
+```
+
+## Financial Crises
+
+```{r}
+# Financial crises df
+countries_to_keep <- c("Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Ecuador", "Guyana", "Paraguay", "Peru", "Suriname","Uruguay", "Venezuela", "Costa Rica", "Cuba", "Dominican Republic", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
+
+filtered_crises<- crises_df %>%
+  filter(Country %in% countries_to_keep) 
+
+# Adding a region column -> manually because countrycode doesnt differenciate between LATAM and Carribean in region/subregion structure
+# -> South America
+# -> Central America
+filtered_crises$region <- case_when(
+  filtered_crises$Country == "Argentina" ~ "South America",
+  filtered_crises$Country == "Bolivia" ~ "South America",
+  filtered_crises$Country == "Brazil" ~ "South America",
+  filtered_crises$Country == "Chile" ~ "South America",
+  filtered_crises$Country == "Colombia" ~ "South America",
+  filtered_crises$Country == "Ecuador" ~ "South America",
+  filtered_crises$Country == "Paraguay" ~ "South America",
+  filtered_crises$Country == "Peru" ~ "South America",
+  filtered_crises$Country == "Uruguay" ~ "South America",
+  filtered_crises$Country == "Venezuela" ~ "South America",
+  filtered_crises$Country == "Costa Rica" ~ "Central America",
+  filtered_crises$Country == "Cuba" ~ "Central America",
+  filtered_crises$Country == "Dominican Republic" ~ "Central America",
+  filtered_crises$Country == "El Salvador" ~ "Central America",
+  filtered_crises$Country == "Guatemala" ~ "Central America",
+  filtered_crises$Country == "Honduras" ~ "Central America",
+  filtered_crises$Country == "Mexico" ~ "Central America",
+  filtered_crises$Country == "Nicaragua" ~ "Central America",
+  filtered_crises$Country == "Panama" ~ "Central America",
+  TRUE ~ "Other"
+)
+
+# Reshaping data from wide to long format (will need for visualizations later)
+crisis_long <- filtered_crises %>%
+  pivot_longer(
+    cols = c(`Banking Crises`, `Currency Crises`, `Debt Crises`),
+    names_to = "Crisis_Type",
+    values_to = "Crisis_Value"
+  ) %>%
+  filter(!is.na(Crisis_Value) & Crisis_Value == 1)  # Keep only crisis occurrences
+
+#Preparing data for merging
+filtered_crises <- filtered_crises %>%
+  rename(country = Country, year = Year)
+
+# Replacing spaces with underscores in column names
+filtered_crises <- filtered_crises %>%
+  rename_with(~ gsub(" ", "_", .x))
+
+# All names to lower  case
+filtered_crises <- filtered_crises %>%
+  rename_with(~ gsub(" ", "_", tolower(.x)))
+
+```
+
+## Merging into one dataframe
+
+```{r}
+# Starting with data_wid_wide, then adding WDI data, then adding crisis data
+combined_data <- data_wid_wide %>%
+  left_join(data_wdi_clean, by = c("country", "year")) %>%
+  left_join(filtered_crises, by = c("country", "year"))
+
+# View the result
+View(combined_data)
+```
+
+```{r}
+# Removing excess columns
+combined_data <- combined_data %>% select(-id)
+
+# Adding a region column -> manually because countrycode doesnt differenciate between LATAM and Carribean in region/subregion structure
+# -> South America
+# -> Central America
+
+combined_data$region <- case_when(
+  combined_data$country == "Argentina" ~ "South America",
+  combined_data$country == "Bolivia" ~ "South America",
+  combined_data$country == "Brazil" ~ "South America",
+  combined_data$country == "Chile" ~ "South America",
+  combined_data$country == "Colombia" ~ "South America",
+  combined_data$country == "Ecuador" ~ "South America",
+  combined_data$country == "Paraguay" ~ "South America",
+  combined_data$country == "Peru" ~ "South America",
+  combined_data$country == "Uruguay" ~ "South America",
+  combined_data$country == "Venezuela" ~ "South America",
+  combined_data$country == "Costa Rica" ~ "Central America",
+  combined_data$country == "Cuba" ~ "Central America",
+  combined_data$country == "Dominican Republic" ~ "Central America",
+  combined_data$country == "El Salvador" ~ "Central America",
+  combined_data$country == "Guatemala" ~ "Central America",
+  combined_data$country == "Honduras" ~ "Central America",
+  combined_data$country == "Mexico" ~ "Central America",
+  combined_data$country == "Nicaragua" ~ "Central America",
+  combined_data$country == "Panama" ~ "Central America",
+  TRUE ~ "Other"
+)
+```
+
+```{r}
+# Checking for missing values
+# Counting missing values per column
+missing_summary <- data.frame(
+  column = names(combined_data),
+  missing_count = colSums(is.na(combined_data)),
+  missing_percent = round(colMeans(is.na(combined_data)) * 100, 2)
+) %>%
+  arrange(desc(missing_count))
+print(missing_summary)
+
+# Visualizing missing data pattern 
+vis_miss(combined_data)
+
+# Saving rows with missing values in any of the crisis columns
+rows_with_missing_crises <- combined_data %>%
+  filter(if_any(c(banking_crises, currency_crises, debt_crises, 
+                  twin_crises, triple_crises, twin_and_triple_crises), 
+                is.na))
+View(rows_with_missing_crises)
+```

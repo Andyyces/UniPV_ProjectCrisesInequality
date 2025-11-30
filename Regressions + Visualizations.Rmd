@@ -1,0 +1,132 @@
+---
+title: "Regressions + Visualizations"
+output: html_document
+date: "2025-11-30"
+---
+
+```{r}
+library(pacman)
+p_load(dplyr,
+       ggplot2,
+       tidyr,
+       patchwork,
+       plm,
+       stargazer)
+```
+
+## Regressions
+
+```{r}
+# Startign with 2WFE for each type of financial crisis separately
+model_plm1 <- plm(aptinc992j_p0p50 ~ banking_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_plm2 <- plm(aptinc992j_p0p50 ~ currency_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_plm3 <- plm(aptinc992j_p0p50 ~ debt_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_plm4 <- plm(aptinc992j_p0p50 ~ twin_crises, data = combined_data, index = c("country", "year"), model = "within")
+
+# Creating comparison table
+stargazer(model_plm1, model_plm2, model_plm3, model_plm4,
+          type = "text",  # Use "html" for HTML or "latex" for LaTeX
+          title = "Comparison of Financial Crisis Types on Inequality",
+          column.labels = c("Banking", "Currency", "Debt", "Twin"),
+          covariate.labels = c("Crisis Indicator"),
+          dep.var.labels = "Average pre-tax income, bottom 50% (adults 20+)",
+          keep.stat = c("n", "rsq", "adj.rsq"))
+
+```
+
+## Visualizations
+
+```{r}
+# We will use the crisis_long that we created in Data_Cleaning.Rmd file
+
+# Create the plot with position dodge to show multiple crises in the same year
+p <-ggplot(crisis_long, aes(x = Year, y = reorder(Country,
+                                                  desc(Country)),
+                            color = Crisis_Type)) +
+  geom_point(size = 3, shape = 15, position = position_dodge(width = 0.6)) +
+  scale_color_manual(
+    values = c(
+      "Banking Crises" = "#d62728",
+      "Currency Crises" = "#1f77b4",
+      "Debt Crises" = "#2ca02c"
+    ),
+    name = "Crisis Type"
+  ) +
+  labs(
+    title = "Financial Crises in South American Countries (Post-1950)",
+    x = "Year",
+    y = "Country"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90"),
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text.y = element_text(size = 9, face = "bold")
+  )
+
+# Save as PNG in A4 landscape orientation
+ggsave("Output/Figures/financial_crises_plot.png", plot = p, 
+       width = 297, height = 210, units = "mm", dpi = 300)
+
+# Or portrait orientation if preferred
+ggsave("Output/Figures/financial_crises_plot_portrait.png", plot = p, 
+       width = 210, height = 297, units = "mm", dpi = 300)
+p
+```
+
+```{r}
+# Order countries by region
+crisis_long <- crisis_long %>%
+  mutate(Country = reorder(Country, as.numeric(factor(region, levels = c("South America", "Central America")))))
+
+# Get unique countries per region for annotation
+region_labels <- crisis_long %>%
+  select(Country, region) %>%
+  distinct() %>%
+  mutate(Country = reorder(Country, as.numeric(factor(region, levels = c("South America", "Central America"))))) %>%
+  group_by(region) %>%
+  summarise(
+    y_min = min(as.numeric(Country)),
+    y_max = max(as.numeric(Country)),
+    y_mid = mean(c(min(as.numeric(Country)), max(as.numeric(Country))))
+  )
+
+ggplot(crisis_long, aes(x = Year, y = Country, color = Crisis_Type)) +
+  # Add background rectangles for regions
+  geom_rect(data = region_labels, 
+            aes(xmin = -Inf, xmax = Inf, ymin = y_min - 0.5, ymax = y_max + 0.5),
+            fill = "gray95", alpha = 0.3, inherit.aes = FALSE) +
+  # Add region labels on the right
+  geom_text(data = region_labels, 
+            aes(x = Inf, y = y_mid, label = region),
+            hjust = -0.1, size = 4, fontface = "bold", inherit.aes = FALSE) +
+  # Add the crisis points
+  geom_point(size = 3, shape = 15, position = position_dodge(width = 0.6)) +
+  scale_color_manual(
+    values = c(
+      "Banking Crises" = "#d62728",
+      "Currency Crises" = "#1f77b4",
+      "Debt Crises" = "#2ca02c"
+    ),
+    name = "Crisis Type"
+  ) +
+  labs(
+    title = "Financial Crises in South American Countries (Post-1950)",
+    x = "Year",
+    y = "Country"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90"),
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text.y = element_text(size = 9, face = "bold"),
+    axis.text.x = element_text(size = 8),
+    axis.title = element_text(size = 9),
+    plot.margin = margin(5, 50, 5, 5)  # Add right margin for region labels
+  ) +
+  coord_cartesian(clip = "off")  # Allow text outside plot area
+```
