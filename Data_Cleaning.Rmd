@@ -153,32 +153,6 @@ View(combined_data)
 # Removing excess columns
 combined_data <- combined_data %>% select(-id)
 
-# Adding a region column -> manually because countrycode doesnt differenciate between LATAM and Carribean in region/subregion structure
-# -> South America
-# -> Central America
-
-combined_data$region <- case_when(
-  combined_data$country == "Argentina" ~ "South America",
-  combined_data$country == "Bolivia" ~ "South America",
-  combined_data$country == "Brazil" ~ "South America",
-  combined_data$country == "Chile" ~ "South America",
-  combined_data$country == "Colombia" ~ "South America",
-  combined_data$country == "Ecuador" ~ "South America",
-  combined_data$country == "Paraguay" ~ "South America",
-  combined_data$country == "Peru" ~ "South America",
-  combined_data$country == "Uruguay" ~ "South America",
-  combined_data$country == "Venezuela" ~ "South America",
-  combined_data$country == "Costa Rica" ~ "Central America",
-  combined_data$country == "Cuba" ~ "Central America",
-  combined_data$country == "Dominican Republic" ~ "Central America",
-  combined_data$country == "El Salvador" ~ "Central America",
-  combined_data$country == "Guatemala" ~ "Central America",
-  combined_data$country == "Honduras" ~ "Central America",
-  combined_data$country == "Mexico" ~ "Central America",
-  combined_data$country == "Nicaragua" ~ "Central America",
-  combined_data$country == "Panama" ~ "Central America",
-  TRUE ~ "Other"
-)
 ```
 
 ```{r}
@@ -201,4 +175,10 @@ rows_with_missing_crises <- combined_data %>%
                   twin_crises, triple_crises, twin_and_triple_crises), 
                 is.na))
 View(rows_with_missing_crises)
+```
+
+```{r}
+# Saving clean data as rds
+saveRDS(combined_data, "Data/Clean/combined_data.rds")
+saveRDS(crisis_long, "Data/Clean/crisis_long.rds")
 ```
