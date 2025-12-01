@@ -306,6 +306,70 @@ ggsave(
 )
 ```
 
+```{r Plot 3}
+
+# Aggregate debt data by subregion, from 1970 onward
+regional_debt_data <- combined_data %>%
+  filter(year >= 1990) %>%                 # keep 1970 onward
+  group_by(subregion, year) %>%
+  summarise(
+    central_govt_debt = mean(govt_debt_pct_gdp, na.rm = TRUE),
+    all_crises        = max(all_crises, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    subregion = factor(
+      subregion,
+      levels = c("Caribbean", "Andes & Amazons", "South Cone")
+    )
+  ) %>%
+  filter(!is.na(central_govt_debt))
+
+
+# Plot
+p3 <- ggplot(regional_debt_data, aes(x = year, y = central_govt_debt)) +
+  geom_rect(
+    data = regional_debt_data %>%
+      filter(all_crises == 1) %>%
+      distinct(year, subregion, all_crises),
+    inherit.aes = FALSE,
+    aes(xmin = year - 0.5, xmax = year + 0.5, ymin = -Inf, ymax = Inf),
+    fill = "grey60", alpha = 0.4
+  ) +
+  geom_line(color = "firebrick3", linewidth = 0.8, alpha = 0.9) +
+  facet_wrap(~ subregion, ncol = 1, scales = "fixed") +
+  scale_x_continuous(breaks = seq(1990, 2020, 10)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  coord_cartesian(xlim = c(1990, 2025)) +
+  theme_economist() +
+  labs(
+    title = "Central Government Debt Across Latin American Regions",
+    subtitle = "Average debt-to-GDP ratio by subregion. Shaded areas: Crisis years",
+    x = NULL,
+    y = "Central Govt Debt (% of GDP)",
+    caption = "Source: World Bank World Development Indicators & IMF Systemic Banking Crises Database"
+  ) +
+  theme(
+    strip.text = element_text(face = "bold", size = 11, hjust = 0),
+    panel.spacing = unit(0.8, "lines"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0, margin = margin(b = 2)),
+     plot.subtitle = element_text(size = 10, color = "grey40", hjust = 0),
+    plot.caption = element_text(size = 7, face = "bold", hjust = 0, margin = margin(t = 15)),
+    axis.text = element_text(size = 8),
+    axis.title.y = element_text(size = 9, margin = margin(r = 12))
+  )
+
+ggsave(
+  filename = here("Output", "Figures", "Empirical Graph 3.png"),
+  plot = p3,
+  width = 7,
+  height = 5.5,
+  dpi = 300,
+  bg = "white"
+)
+
+```
+
 
 
 
