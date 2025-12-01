@@ -36,7 +36,7 @@ models_crises <- stargazer(model_plm1x50, model_plm2x50, model_plm3x50, model_pl
                           covariate.labels = c("Crisis Indicator"),
                           dep.var.labels = "Pre-tax income share, bottom 50% (adults 20+)",
                           keep.stat = c("n", "rsq", "adj.rsq"))# ,
-                          # out = "Output/Tables/crisis_comparison.tex")
+                          # out = "Output/Tables/crisis_comparison_bottom50.tex")
 ```
 
 ```{r}
@@ -55,7 +55,25 @@ models_crises <- stargazer(model_plm1x1, model_plm2x1, model_plm3x1, model_plm4x
                           covariate.labels = c("Crisis Indicator"),
                           dep.var.labels = "Pre-tax income share, top 1% (adults 20+)",
                           keep.stat = c("n", "rsq", "adj.rsq"))# ,
-                          # out = "Output/Tables/crisis_comparison.tex")
+                          # out = "Output/Tables/crisis_comparison_top1.tex")
+```
+
+```{r}
+# Startign with 2WFE for each type of financial crisis separately
+model_growth1 <- plm(NY.GDP.MKTP.KD.ZG ~ banking_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_growth2 <- plm(NY.GDP.MKTP.KD.ZG ~ currency_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_growth3 <- plm(NY.GDP.MKTP.KD.ZG ~ debt_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_growth4 <- plm(NY.GDP.MKTP.KD.ZG ~ twin_crises, data = combined_data, index = c("country", "year"), model = "within")
+
+# Creating comparison table
+models_crises <- stargazer(model_growth1, model_growth2, model_growth3, model_growth4,
+                          type = "text",  # Use "html" for HTML or "latex" for LaTeX
+                          title = "Comparison of Financial Crisis Types on Growth",
+                          column.labels = c("Banking", "Currency", "Debt", "Twin"),
+                          covariate.labels = c("Crisis Indicator"),
+                          dep.var.labels = "GDP growth (annual %)",
+                          keep.stat = c("n", "rsq", "adj.rsq"))# ,
+                          # out = "Output/Tables/crisis_comparison_growth.tex")
 ```
 
 ## Visualizations
