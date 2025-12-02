@@ -1,0 +1,29 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Comparison of Financial Crisis Types on Inequality},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Dependent variable: Pre-tax income share, top 1\% (adults 20+)},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{10}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Banking & Currency & Debt & Twin \\ \midrule %% TinyTableHeader
+Crisis (t) & \num{-0.003} & \num{-0.005} & \num{-0.005} & \num{-0.012} \\
+& (\num{0.005}) & (\num{0.004}) & (\num{0.005}) & (\num{0.008}) \\
+Crisis (t-1) & \num{0.001} & \num{-0.005} & \num{-0.001} & \num{-0.007} \\
+& (\num{0.005}) & (\num{0.004}) & (\num{0.006}) & (\num{0.009}) \\
+Crisis (t-2) & \num{-0.001} & \num{-0.004} & \num{-0.004} & \num{-0.007} \\
+& (\num{0.005}) & (\num{0.004}) & (\num{0.005}) & (\num{0.008}) \\
+Crisis (t-3) & \num{-0.005} & \num{-0.006}* & \num{-0.003} & \num{-0.012} \\
+& (\num{0.004}) & (\num{0.004}) & (\num{0.004}) & (\num{0.008}) \\
+Num.Obs. & \num{666} & \num{629} & \num{664} & \num{666} \\
+R2 & \num{0.007} & \num{0.024} & \num{0.038} & \num{0.017} \\
+R2 Adj. & \num{-0.026} & \num{-0.008} & \num{0.007} & \num{-0.015} \\
+\bottomrule
+\end{talltblr}
+\end{table}
