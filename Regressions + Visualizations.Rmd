@@ -8,6 +8,7 @@ date: "2025-11-30"
 library(pacman)
 p_load(dplyr,
        ggplot2,
+       ggthemes,
        tidyr,
        patchwork,
        plm,
@@ -74,7 +75,83 @@ models_crises <- stargazer(model_growth1, model_growth2, model_growth3, model_gr
                           dep.var.labels = "GDP growth (annual %)",
                           keep.stat = c("n", "rsq", "adj.rsq"))# ,
                           # out = "Output/Tables/crisis_comparison_growth.tex")
+
+
+
+
 ```
+
+
+```{r REGRESION ON GROWTH FOR LATAM SUBREGIONS - ONLY GROWTH BC WAS THE ONLY SIGNIFICANT ONE}
+combined_data <- combined_data %>%
+  mutate(region_group = case_when(
+    region == "Central America" ~ "Caribbean",
+    country %in% c("Argentina", "Chile", "Paraguay", "Uruguay") ~ "South Cone",
+    country %in% c("Colombia", "Peru", "Venezuela", "Ecuador", "Bolivia", 
+                   "Guyana", "Suriname", "French Guiana") ~ "Andes & Amazons",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(region_group)) %>%
+  # CRITICAL: Set factor BEFORE pivot
+  mutate(region_group = forcats::fct_relevel(region_group, 
+                                              "Caribbean", "Andes & Amazons", "South Cone"))
+
+run_growth_models <- function(df) {
+  list(
+    plm(NY.GDP.MKTP.KD.ZG ~ banking_crises,  data = df,
+        index = c("country", "year"), model = "within"),
+    plm(NY.GDP.MKTP.KD.ZG ~ currency_crises, data = df,
+        index = c("country", "year"), model = "within"),
+    plm(NY.GDP.MKTP.KD.ZG ~ debt_crises,     data = df,
+        index = c("country", "year"), model = "within"),
+    plm(NY.GDP.MKTP.KD.ZG ~ twin_crises,     data = df,
+        index = c("country", "year"), model = "within")
+  )
+}
+
+# 2) Subset by subregion and run models
+models_caribbean     <- run_growth_models(dplyr::filter(combined_data, region_group == "Caribbean"))
+models_andes_amazons <- run_growth_models(dplyr::filter(combined_data, region_group == "Andes & Amazons"))
+models_south_cone    <- run_growth_models(dplyr::filter(combined_data, region_group == "South Cone"))
+
+# 3) Name them explicitly for stargazer
+m_Car_bank  <- models_caribbean[[1]]
+m_Car_curr  <- models_caribbean[[2]]
+m_Car_debt  <- models_caribbean[[3]]
+m_Car_twin  <- models_caribbean[[4]]
+
+m_AA_bank   <- models_andes_amazons[[1]]
+m_AA_curr   <- models_andes_amazons[[2]]
+m_AA_debt   <- models_andes_amazons[[3]]
+m_AA_twin   <- models_andes_amazons[[4]]
+
+m_SC_bank   <- models_south_cone[[1]]
+m_SC_curr   <- models_south_cone[[2]]
+m_SC_debt   <- models_south_cone[[3]]
+m_SC_twin   <- models_south_cone[[4]]
+
+
+stargazer(
+  # 12 models: 4 per subregion
+  m_Car_bank, m_Car_curr, m_Car_debt, m_Car_twin,
+  m_AA_bank,  m_AA_curr,  m_AA_debt,  m_AA_twin,
+  m_SC_bank,  m_SC_curr,  m_SC_debt,  m_SC_twin,
+  type = "text",        # "latex" or "html" for the paper
+  title = "Effect of Different Crisis Types on GDP Growth by Subregion",
+  dep.var.labels = "GDP growth (annual %)",
+  covariate.labels = c("Crisis indicator"),
+  keep.stat = c("n", "rsq", "adj.rsq"),
+  # 12 column labels: 4 for each subregion
+  column.labels = c(
+    "Banking (Carib.)", "Currency (Carib.)", "Debt (Carib.)", "Twin (Carib.)",
+    "Banking (Andes/Amaz.)", "Currency (Andes/Amaz.)", "Debt (Andes/Amaz.)", "Twin (Andes/Amaz.)",
+    "Banking (South Cone)", "Currency (South Cone)", "Debt (South Cone)", "Twin (South Cone)"
+  ),
+  column.separate = rep(1, 12)   # avoid multi-row header complications
+)
+
+```
+
 
 ## Visualizations
 
@@ -116,3 +193,36 @@ ggsave("Output/Figures/financial_crises_plot_portrait.png", plot = p,
        width = 210, height = 297, units = "mm", dpi = 300)
 p
 ```
+
+
+```{r Same Plot but in Economist Theme}
+library(ggthemes)
+econ_colors <- economist_pal()(3)
+
+p2 <- ggplot(crisis_long, aes(x = Year, y = reorder(Country, desc(Country)),
+                        color = Crisis_Type)) +
+  geom_point(size = 3, shape = 15, position = position_dodge(width = 0.6)) +
+  scale_color_manual(
+    values = c(
+      "Banking Crises" = "firebrick",
+      "Currency Crises" = econ_colors[1],
+      "Debt Crises" = econ_colors[2]
+    ),
+    name = "Crisis Type"
+  ) +
+  labs(
+    x = "Year",
+    y = "Country"
+  ) +
+  theme_economist() +
+  theme(
+    legend.position = "bottom",
+    axis.text.y = element_text(size = 9, face = "bold"),
+    axis.title.y = element_text(margin = margin(r = 20))  
+  )
+
+ggsave("Output/Figures/crisis plot blue.png", plot = p2, 
+       width = 210, height = 297, units = "mm", dpi = 300)
+
+```
+
