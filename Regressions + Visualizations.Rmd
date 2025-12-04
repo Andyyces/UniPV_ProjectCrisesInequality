@@ -270,59 +270,112 @@ combined_data <- combined_data %>%
   mutate(region_group = forcats::fct_relevel(region_group, 
                                               "Caribbean", "Andes & Amazons", "South Cone"))
 
-run_growth_models <- function(df) {
+run_lag_models <- function(df) {
   list(
-    plm(NY.GDP.MKTP.KD.ZG ~ banking_crises,  data = df,
-        index = c("country", "year"), model = "within"),
-    plm(NY.GDP.MKTP.KD.ZG ~ currency_crises, data = df,
-        index = c("country", "year"), model = "within"),
-    plm(NY.GDP.MKTP.KD.ZG ~ debt_crises,     data = df,
-        index = c("country", "year"), model = "within"),
-    plm(NY.GDP.MKTP.KD.ZG ~ twin_crises,     data = df,
-        index = c("country", "year"), model = "within")
+    plm(NY.GDP.MKTP.KD.ZG ~ banking_crises +
+          plm::lag(banking_crises, 1) +
+          plm::lag(banking_crises, 2) +
+          plm::lag(banking_crises, 3),
+        data  = df,
+        index = c("country", "year"),
+        model = "within"),
+
+    plm(NY.GDP.MKTP.KD.ZG ~ currency_crises +
+          plm::lag(currency_crises, 1) +
+          plm::lag(currency_crises, 2) +
+          plm::lag(currency_crises, 3),
+        data  = df,
+        index = c("country", "year"),
+        model = "within"),
+
+    plm(NY.GDP.MKTP.KD.ZG ~ debt_crises +
+          plm::lag(debt_crises, 1) +
+          plm::lag(debt_crises, 2) +
+          plm::lag(debt_crises, 3),
+        data  = df,
+        index = c("country", "year"),
+        model = "within"),
+
+    plm(NY.GDP.MKTP.KD.ZG ~ twin_crises +
+          plm::lag(twin_crises, 1) +
+          plm::lag(twin_crises, 2) +
+          plm::lag(twin_crises, 3),
+        data  = df,
+        index = c("country", "year"),
+        model = "within")
   )
 }
 
-# 2) Subset by subregion and run models
-models_caribbean     <- run_growth_models(dplyr::filter(combined_data, region_group == "Caribbean"))
-models_andes_amazons <- run_growth_models(dplyr::filter(combined_data, region_group == "Andes & Amazons"))
-models_south_cone    <- run_growth_models(dplyr::filter(combined_data, region_group == "South Cone"))
-
-# 3) Name them explicitly for stargazer
-m_Car_bank  <- models_caribbean[[1]]
-m_Car_curr  <- models_caribbean[[2]]
-m_Car_debt  <- models_caribbean[[3]]
-m_Car_twin  <- models_caribbean[[4]]
-
-m_AA_bank   <- models_andes_amazons[[1]]
-m_AA_curr   <- models_andes_amazons[[2]]
-m_AA_debt   <- models_andes_amazons[[3]]
-m_AA_twin   <- models_andes_amazons[[4]]
-
-m_SC_bank   <- models_south_cone[[1]]
-m_SC_curr   <- models_south_cone[[2]]
-m_SC_debt   <- models_south_cone[[3]]
-m_SC_twin   <- models_south_cone[[4]]
-
-
-stargazer(
-  # 12 models: 4 per subregion
-  m_Car_bank, m_Car_curr, m_Car_debt, m_Car_twin,
-  m_AA_bank,  m_AA_curr,  m_AA_debt,  m_AA_twin,
-  m_SC_bank,  m_SC_curr,  m_SC_debt,  m_SC_twin,
-  type = "text",        # "latex" or "html" for the paper
-  title = "Effect of Different Crisis Types on GDP Growth by Subregion",
-  dep.var.labels = "GDP growth (annual %)",
-  covariate.labels = c("Crisis indicator"),
-  keep.stat = c("n", "rsq", "adj.rsq"),
-  # 12 column labels: 4 for each subregion
-  column.labels = c(
-    "Banking (Carib.)", "Currency (Carib.)", "Debt (Carib.)", "Twin (Carib.)",
-    "Banking (Andes/Amaz.)", "Currency (Andes/Amaz.)", "Debt (Andes/Amaz.)", "Twin (Andes/Amaz.)",
-    "Banking (South Cone)", "Currency (South Cone)", "Debt (South Cone)", "Twin (South Cone)"
-  ),
-  column.separate = rep(1, 12)   # avoid multi-row header complications
+# Caribbean
+models_caribbean <- run_lag_models(
+  filter(combined_data, region_group == "Caribbean")
 )
+
+# Andes & Amazons
+models_andes_amazons <- run_lag_models(
+  filter(combined_data, region_group == "Andes & Amazons")
+)
+
+# South Cone
+models_south_cone <- run_lag_models(
+  filter(combined_data, region_group == "South Cone")
+)
+
+# Caribbean
+car_bank  <- models_caribbean[[1]]
+car_curr  <- models_caribbean[[2]]
+car_debt  <- models_caribbean[[3]]
+car_twin  <- models_caribbean[[4]]
+
+# Andes & Amazons
+aa_bank   <- models_andes_amazons[[1]]
+aa_curr   <- models_andes_amazons[[2]]
+aa_debt   <- models_andes_amazons[[3]]
+aa_twin   <- models_andes_amazons[[4]]
+
+# South Cone
+sc_bank   <- models_south_cone[[1]]
+sc_curr   <- models_south_cone[[2]]
+sc_debt   <- models_south_cone[[3]]
+sc_twin   <- models_south_cone[[4]]
+
+## 1) Caribbean
+stargazer(
+  car_bank, car_curr, car_debt, car_twin,
+  type = "latex",
+  title = "Effect of Crises on GDP Growth – Caribbean",
+  dep.var.labels = "GDP growth (annual %)",
+  column.labels = c("Banking", "Currency", "Debt", "Twin"),
+  covariate.labels = c("Crisis(t)", "Crisis(t-1)", "Crisis(t-2)", "Crisis(t-3)"),
+  keep.stat = c("n", "rsq", "adj.rsq"),
+  omit.stat = c("f", "ser", "aic", "bic")
+)
+
+## 2) Andes & Amazons
+stargazer(
+  aa_bank, aa_curr, aa_debt, aa_twin,
+  type = "latex",
+  title = "Effect of Crises on GDP Growth – Andes & Amazons",
+  dep.var.labels = "GDP growth (annual %)",
+  column.labels = c("Banking", "Currency", "Debt", "Twin"),
+  covariate.labels = c("Crisis(t)", "Crisis(t-1)", "Crisis(t-2)", "Crisis(t-3)"),
+  keep.stat = c("n", "rsq", "adj.rsq"),
+  omit.stat = c("f", "ser", "aic", "bic")
+)
+
+## 3) South Cone
+stargazer(
+  sc_bank, sc_curr, sc_debt, sc_twin,
+  type = "latex",
+  title = "Effect of Crises on GDP Growth – South Cone",
+  dep.var.labels = "GDP growth (annual %)",
+  column.labels = c("Banking", "Currency", "Debt", "Twin"),
+  covariate.labels = c("Crisis(t)", "Crisis(t-1)", "Crisis(t-2)", "Crisis(t-3)"),
+  keep.stat = c("n", "rsq", "adj.rsq"),
+  omit.stat = c("f", "ser", "aic", "bic")
+)
+
+
 
 ```
 
