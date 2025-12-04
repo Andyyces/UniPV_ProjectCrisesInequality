@@ -22,65 +22,239 @@ crisis_long <- readRDS("Data/Clean/crisis_long.rds")
 
 ## Regressions
 
+### No Controls
+
+#### Dependent: Pre-tax income share, top 1%
+
 ```{r}
-# Startign with 2WFE for each type of financial crisis separately
-model_plm1x50 <- plm(sptinc992j_p0p50 ~ banking_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm2x50 <- plm(sptinc992j_p0p50 ~ currency_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm3x50 <- plm(sptinc992j_p0p50 ~ debt_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm4x50 <- plm(sptinc992j_p0p50 ~ twin_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_plm1x1 <- plm(sptinc992j_p99p100 ~ banking_crises + 
+                      plm::lag(banking_crises, 1) + 
+                      plm::lag(banking_crises, 2) +
+                      plm::lag(banking_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm2x1 <- plm(sptinc992j_p99p100 ~ currency_crises +
+                      plm::lag(currency_crises, 1) + 
+                      plm::lag(currency_crises, 2) + 
+                      plm::lag(currency_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm3x1 <- plm(sptinc992j_p99p100 ~ debt_crises + 
+                      plm::lag(debt_crises, 1) + 
+                      plm::lag(debt_crises, 2) +
+                      plm::lag(debt_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm4x1 <- plm(sptinc992j_p99p100 ~ twin_crises + 
+                      plm::lag(twin_crises, 1) + 
+                      plm::lag(twin_crises, 2) + 
+                      plm::lag(twin_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm5x1 <- plm(sptinc992j_p99p100 ~ triple_crises + 
+                      plm::lag(triple_crises, 1) + 
+                      plm::lag(triple_crises, 2) + 
+                      plm::lag(triple_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm6x1 <- plm(sptinc992j_p99p100 ~ twin_and_triple_crises + 
+                      plm::lag(twin_and_triple_crises, 1) + 
+                      plm::lag(twin_and_triple_crises, 2) + 
+                      plm::lag(twin_and_triple_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"),
+                    model = "within")
+
+# Creating coefficient mapping to align different crisis types
+coef_map <- c(
+  "banking_crises" = "Crisis (t)",
+  "currency_crises" = "Crisis (t)",
+  "debt_crises" = "Crisis (t)",
+  "twin_crises" = "Crisis (t)",
+  "plm::lag(banking_crises, 1)" = "Crisis (t-1)",
+  "plm::lag(currency_crises, 1)" = "Crisis (t-1)",
+  "plm::lag(debt_crises, 1)" = "Crisis (t-1)",
+  "plm::lag(twin_crises, 1)" = "Crisis (t-1)",
+  "plm::lag(banking_crises, 2)" = "Crisis (t-2)",
+  "plm::lag(currency_crises, 2)" = "Crisis (t-2)",
+  "plm::lag(debt_crises, 2)" = "Crisis (t-2)",
+  "plm::lag(twin_crises, 2)" = "Crisis (t-2)",
+  "plm::lag(banking_crises, 3)" = "Crisis (t-3)",
+  "plm::lag(currency_crises, 3)" = "Crisis (t-3)",
+  "plm::lag(debt_crises, 3)" = "Crisis (t-3)",
+  "plm::lag(twin_crises, 3)" = "Crisis (t-3)"
+)
+
+
+# Creating the table
+modelsummary(
+  list("Banking" = model_plm1x1, 
+       "Currency" = model_plm2x1, 
+       "Debt" = model_plm3x1,
+       "Twin" = model_plm4x1),
+  coef_map = coef_map,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Effects of different Financial Crisis Types on Inequality",
+  notes = "Dependent variable: Pre-tax income share, top 1% (adults 20+)",
+  output = "Output/Tables/crisis_comparison_top1.tex"
+)
+```
+
+#### Dependent: Pre-tax income share, bottom 50%
+
+```{r}
+model_plm1x50 <- plm(sptinc992j_p0p50 ~ banking_crises + 
+                      plm::lag(banking_crises, 1) + 
+                      plm::lag(banking_crises, 2) + 
+                      plm::lag(banking_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm2x50 <- plm(sptinc992j_p0p50 ~ currency_crises +
+                      plm::lag(currency_crises, 1) + 
+                      plm::lag(currency_crises, 2) + 
+                      plm::lag(currency_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm3x50 <- plm(sptinc992j_p0p50 ~ debt_crises + 
+                      plm::lag(debt_crises, 1) + 
+                      plm::lag(debt_crises, 2) + 
+                      plm::lag(debt_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm4x50 <- plm(sptinc992j_p0p50 ~ twin_crises + 
+                      plm::lag(twin_crises, 1) + 
+                      plm::lag(twin_crises, 2) + 
+                      plm::lag(twin_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm5x50 <- plm(sptinc992j_p0p50 ~ triple_crises + 
+                      plm::lag(triple_crises, 1) + 
+                      plm::lag(triple_crises, 2) + 
+                      plm::lag(triple_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"), 
+                    model = "within")
+
+model_plm6x50 <- plm(sptinc992j_p0p50 ~ twin_and_triple_crises + 
+                      plm::lag(twin_and_triple_crises, 1) + 
+                      plm::lag(twin_and_triple_crises, 2) + 
+                      plm::lag(twin_and_triple_crises, 3), 
+                    data = combined_data, 
+                    index = c("country", "year"),
+                    model = "within")
 
 # Creating comparison table
+modelsummary(
+  list("Banking" = model_plm1x50, 
+       "Currency" = model_plm2x50, 
+       "Debt" = model_plm3x50,
+       "Twin" = model_plm4x50),
+
+  coef_map = coef_map,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Effects of different Financial Crisis Types on Inequality",
+  notes = "Dependent variable: Pre-tax income share, bottom 50% (adults 20+)",
+  output = "Output/Tables/crisis_comparison_bottom50.tex"
+)
+
+# In case we need to see the output also in R
 models_crises <- stargazer(model_plm1x50, model_plm2x50, model_plm3x50, model_plm4x50,
                           type = "text",  # Use "html" for HTML or "latex" for LaTeX
                           title = "Comparison of Financial Crisis Types on Inequality",
                           column.labels = c("Banking", "Currency", "Debt", "Twin"),
                           covariate.labels = c("Crisis Indicator"),
                           dep.var.labels = "Pre-tax income share, bottom 50% (adults 20+)",
-                          keep.stat = c("n", "rsq", "adj.rsq"))# ,
-                          # out = "Output/Tables/crisis_comparison_bottom50.tex")
+                          keep.stat = c("n", "rsq", "adj.rsq"))
 ```
 
-```{r}
-model_plm1x1 <- plm(sptinc992j_p99p100 ~ banking_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm2x1 <- plm(sptinc992j_p99p100 ~ currency_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm3x1 <- plm(sptinc992j_p99p100 ~ debt_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm4x1 <- plm(sptinc992j_p99p100 ~ twin_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm5x1 <- plm(sptinc992j_p99p100 ~ triple_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_plm6x1 <- plm(sptinc992j_p99p100 ~ twin_and_triple_crises, data = combined_data, index = c("country", "year"), model = "within")
-
-# Creating comparison table
-models_crises <- stargazer(model_plm1x1, model_plm2x1, model_plm3x1, model_plm4x1,
-                          type = "text",  # Use "html" for HTML or "latex" for LaTeX
-                          title = "Comparison of Financial Crisis Types on Inequality",
-                          column.labels = c("Banking", "Currency", "Debt", "Twin"),
-                          covariate.labels = c("Crisis Indicator"),
-                          dep.var.labels = "Pre-tax income share, top 1% (adults 20+)",
-                          keep.stat = c("n", "rsq", "adj.rsq"))# ,
-                          # out = "Output/Tables/crisis_comparison_top1.tex")
-```
+#### Dependent: Annual growth rate
 
 ```{r}
 # Startign with 2WFE for each type of financial crisis separately
-model_growth1 <- plm(NY.GDP.MKTP.KD.ZG ~ banking_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_growth2 <- plm(NY.GDP.MKTP.KD.ZG ~ currency_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_growth3 <- plm(NY.GDP.MKTP.KD.ZG ~ debt_crises, data = combined_data, index = c("country", "year"), model = "within")
-model_growth4 <- plm(NY.GDP.MKTP.KD.ZG ~ twin_crises, data = combined_data, index = c("country", "year"), model = "within")
+model_growth1 <- plm(NY.GDP.MKTP.KD.ZG ~ banking_crises +
+                       plm::lag(banking_crises, 1) + 
+                       plm::lag(banking_crises, 2) + 
+                       plm::lag(banking_crises, 3), 
+                     data = combined_data, 
+                     index = c("country", "year"), 
+                     model = "within")
 
-# Creating comparison table
-models_crises <- stargazer(model_growth1, model_growth2, model_growth3, model_growth4,
-                          type = "text",  # Use "html" for HTML or "latex" for LaTeX
-                          title = "Comparison of Financial Crisis Types on Growth",
-                          column.labels = c("Banking", "Currency", "Debt", "Twin"),
-                          covariate.labels = c("Crisis Indicator"),
-                          dep.var.labels = "GDP growth (annual %)",
-                          keep.stat = c("n", "rsq", "adj.rsq"))# ,
-                          # out = "Output/Tables/crisis_comparison_growth.tex")
+model_growth2 <- plm(NY.GDP.MKTP.KD.ZG ~ currency_crises +
+                       plm::lag(currency_crises, 1) + 
+                       plm::lag(currency_crises, 2) + 
+                       plm::lag(currency_crises, 3), 
+                     data = combined_data, 
+                     index = c("country", "year"), 
+                     model = "within")
 
+model_growth3 <- plm(NY.GDP.MKTP.KD.ZG ~ debt_crises +
+                       plm::lag(debt_crises, 1) + 
+                       plm::lag(debt_crises, 2) + 
+                       plm::lag(debt_crises, 3), 
+                     data = combined_data, 
+                     index = c("country", "year"), 
+                     model = "within")
 
+model_growth4 <- plm(NY.GDP.MKTP.KD.ZG ~ twin_crises +
+                       plm::lag(twin_crises, 1) + 
+                       plm::lag(twin_crises, 2) + 
+                       plm::lag(twin_crises, 3), 
+                     data = combined_data, 
+                     index = c("country", "year"), 
+                     model = "within")
 
-
+modelsummary(
+  list("Banking" = model_growth1, 
+       "Currency" = model_growth2, 
+       "Debt" = model_growth3,
+       "Twin" = model_growth4),
+  coef_map = coef_map,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Comparison of Financial Crisis Types on Growth",
+  notes = "Dependent variable: GDP growth (annual %)",
+  output = "Output/Tables/crisis_comparison_growth.tex"
+)
 ```
 
+### With controls
+
+```{r}
+model_growthcon1 <- plm(NY.GDP.MKTP.KD.ZG ~ banking_crises +
+                       plm::lag(banking_crises, 1) + 
+                       plm::lag(banking_crises, 2) + 
+                       plm::lag(banking_crises, 3) +
+                       NY.GDP.DEFL.KD.ZG +
+                       NE.TRD.GNFS.ZS +
+                         JI.UEM.1564.ZS, 
+                     data = combined_data, 
+                     index = c("country", "year"), 
+                     model = "within")
+
+summary(model_growthcon1)
+```
+
+### By subregions
 
 ```{r REGRESION ON GROWTH FOR LATAM SUBREGIONS - ONLY GROWTH BC WAS THE ONLY SIGNIFICANT ONE}
 combined_data <- combined_data %>%
@@ -152,7 +326,6 @@ stargazer(
 
 ```
 
-
 ## Visualizations
 
 ```{r}
@@ -194,7 +367,6 @@ ggsave("Output/Figures/financial_crises_plot_portrait.png", plot = p,
 p
 ```
 
-
 ```{r Same Plot but in Economist Theme}
 library(ggthemes)
 econ_colors <- economist_pal()(3)
@@ -225,4 +397,3 @@ ggsave("Output/Figures/crisis plot blue.png", plot = p2,
        width = 210, height = 297, units = "mm", dpi = 300)
 
 ```
-
