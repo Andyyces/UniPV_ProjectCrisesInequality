@@ -95,7 +95,6 @@ coef_map <- c(
   "plm::lag(twin_crises, 3)" = "Crisis (t-3)"
 )
 
-
 # Creating the table
 modelsummary(
   list("Banking" = model_plm1x1, 
@@ -265,10 +264,56 @@ my_controls <- "NY.GDP.DEFL.KD.ZG + NE.TRD.GNFS.ZS + JI.UEM.1564.ZS"
 model_growthcon1 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "banking_crises", combined_data, my_controls)
 model_growthcon2 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "currency_crises", combined_data, my_controls)
 model_growthcon3 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "debt_crises", combined_data, my_controls)
+model_growthcon4 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "twin_crises", combined_data, my_controls)
 
 summary(model_growthcon1)
 summary(model_growthcon2)
 summary(model_growthcon3)
+summary(model_growthcon4)
+
+# Coefficient mapping for controls table
+coef_map_controls <- c(
+  # Crisis variables at time t
+  "banking_crises" = "Crisis (t)",
+  "currency_crises" = "Crisis (t)",
+  "debt_crises" = "Crisis (t)",
+  "twin_crises" = "Crisis (t)",
+  
+  # Lagged crisis variables - note the format: lag(variable, n)
+  "lag(banking_crises, 1)" = "Crisis (t-1)",
+  "lag(currency_crises, 1)" = "Crisis (t-1)",
+  "lag(debt_crises, 1)" = "Crisis (t-1)",
+  "lag(twin_crises, 1)" = "Crisis (t-1)",
+  
+  "lag(banking_crises, 2)" = "Crisis (t-2)",
+  "lag(currency_crises, 2)" = "Crisis (t-2)",
+  "lag(debt_crises, 2)" = "Crisis (t-2)",
+  "lag(twin_crises, 2)" = "Crisis (t-2)",
+  
+  "lag(banking_crises, 3)" = "Crisis (t-3)",
+  "lag(currency_crises, 3)" = "Crisis (t-3)",
+  "lag(debt_crises, 3)" = "Crisis (t-3)",
+  "lag(twin_crises, 3)" = "Crisis (t-3)",
+  
+  # Control variables
+  "NY.GDP.DEFL.KD.ZG" = "Inflation (GDP deflator)",
+  "NE.TRD.GNFS.ZS" = "Trade openness",
+  "JI.UEM.1564.ZS" = "Unemployment"
+)
+
+# Creating the table
+modelsummary(
+  list("Banking" = model_growthcon1,
+       "Currency" = model_growthcon2,
+       "Debt" = model_growthcon3,
+       "Twin" = model_growthcon4),
+  coef_map = coef_map_controls,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Effects of Financial Crises on GDP Growth (with Controls)",
+  notes = "Dependent variable: GDP growth (annual %)",
+  output = "Output/Tables/crisis_growth_controls.tex"
+)
 ```
 
 #### Dependent: Bottom 50%
@@ -277,10 +322,26 @@ summary(model_growthcon3)
 model_bot50con1 <- crisis_models_controls("sptinc992j_p0p50", "banking_crises", combined_data, my_controls)
 model_bot50con2 <- crisis_models_controls("sptinc992j_p0p50", "currency_crises", combined_data, my_controls)
 model_bot50con3 <- crisis_models_controls("sptinc992j_p0p50", "debt_crises", combined_data, my_controls)
+model_bot50con4 <- crisis_models_controls("sptinc992j_p0p50", "twin_crises", combined_data, my_controls)
 
 summary(model_bot50con1)
 summary(model_bot50con2)
 summary(model_bot50con3)
+summary(model_bot50con4)
+
+# Creating the table
+modelsummary(
+  list("Banking" = model_bot50con1,
+       "Currency" = model_bot50con2,
+       "Debt" = model_bot50con3,
+       "Twin" = model_bot50con4),
+  coef_map = coef_map_controls,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Effects of Financial Crises on Income Inequality (with Controls)",
+  notes = "Pre-tax income share, bottom 50% (adults 20+)",
+  output = "Output/Tables/crisis_bottom50_controls.tex"
+)
 ```
 
 #### Dependent: TOP 1%
@@ -289,10 +350,25 @@ summary(model_bot50con3)
 model_top1con1 <- crisis_models_controls("sptinc992j_p99p100", "banking_crises", combined_data, my_controls)
 model_top1con2 <- crisis_models_controls("sptinc992j_p99p100", "currency_crises", combined_data, my_controls)
 model_top1con3 <- crisis_models_controls("sptinc992j_p99p100", "debt_crises", combined_data, my_controls)
+model_top1con4 <- crisis_models_controls("sptinc992j_p99p100", "twin_crises", combined_data, my_controls)
 
 summary(model_top1con1)
 summary(model_top1con2)
 summary(model_top1con3)
+summary(model_top1con4)
+
+modelsummary(
+  list("Banking" = model_top1con1,
+       "Currency" = model_top1con2,
+       "Debt" = model_top1con3,
+       "Twin" = model_top1con4),
+  coef_map = coef_map_controls,
+  stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  title = "Effects of Financial Crises on Income Inequality (with Controls)",
+  notes = "Dependent variable: Pre-tax income share, top 1% (adults 20+)",
+  output = "Output/Tables/crisis_top1_controls.tex"
+)
 ```
 
 ### By subregions
