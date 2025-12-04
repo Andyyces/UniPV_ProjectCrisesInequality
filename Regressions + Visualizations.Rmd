@@ -239,19 +239,60 @@ modelsummary(
 
 ### With controls
 
+Custom function so it's faster
+
 ```{r}
-model_growthcon1 <- plm(NY.GDP.MKTP.KD.ZG ~ banking_crises +
-                       plm::lag(banking_crises, 1) + 
-                       plm::lag(banking_crises, 2) + 
-                       plm::lag(banking_crises, 3) +
-                       NY.GDP.DEFL.KD.ZG +
-                       NE.TRD.GNFS.ZS +
-                         JI.UEM.1564.ZS, 
-                     data = combined_data, 
-                     index = c("country", "year"), 
-                     model = "within")
+crisis_models_controls <- function(outcome, crisis_type, data, controls_string) {
+  # Creating lag terms
+  lags <- paste0("lag(", crisis_type, ", ", 1:3, ")", collapse = " + ")
+  
+  # Building full formula
+  formula_str <- paste(outcome, "~", crisis_type, "+", lags, "+", controls_string)
+  
+  # Estimating model
+  plm(as.formula(formula_str),
+      data = data,
+      index = c("country", "year"),
+      model = "within")
+}
+
+my_controls <- "NY.GDP.DEFL.KD.ZG + NE.TRD.GNFS.ZS + JI.UEM.1564.ZS"
+```
+
+#### Dependent: GDP Growth
+
+```{r}
+model_growthcon1 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "banking_crises", combined_data, my_controls)
+model_growthcon2 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "currency_crises", combined_data, my_controls)
+model_growthcon3 <- crisis_models_controls("NY.GDP.MKTP.KD.ZG", "debt_crises", combined_data, my_controls)
 
 summary(model_growthcon1)
+summary(model_growthcon2)
+summary(model_growthcon3)
+```
+
+#### Dependent: Bottom 50%
+
+```{r}
+model_bot50con1 <- crisis_models_controls("sptinc992j_p0p50", "banking_crises", combined_data, my_controls)
+model_bot50con2 <- crisis_models_controls("sptinc992j_p0p50", "currency_crises", combined_data, my_controls)
+model_bot50con3 <- crisis_models_controls("sptinc992j_p0p50", "debt_crises", combined_data, my_controls)
+
+summary(model_bot50con1)
+summary(model_bot50con2)
+summary(model_bot50con3)
+```
+
+#### Dependent: TOP 1%
+
+```{r}
+model_top1con1 <- crisis_models_controls("sptinc992j_p99p100", "banking_crises", combined_data, my_controls)
+model_top1con2 <- crisis_models_controls("sptinc992j_p99p100", "currency_crises", combined_data, my_controls)
+model_top1con3 <- crisis_models_controls("sptinc992j_p99p100", "debt_crises", combined_data, my_controls)
+
+summary(model_top1con1)
+summary(model_top1con2)
+summary(model_top1con3)
 ```
 
 ### By subregions
