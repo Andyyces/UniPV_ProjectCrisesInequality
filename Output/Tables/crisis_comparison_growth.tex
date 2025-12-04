@@ -1,0 +1,29 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Comparison of Financial Crisis Types on Growth},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Dependent variable: GDP growth (annual \%)},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{10}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Banking & Currency & Debt & Twin \\ \midrule %% TinyTableHeader
+Crisis (t) & \num{-3.190}*** & \num{-3.439}*** & \num{-2.923}*** & \num{-1.616} \\
+& (\num{0.594}) & (\num{0.443}) & (\num{0.604}) & (\num{1.081}) \\
+Crisis (t-1) & \num{-0.180} & \num{-2.324}*** & \num{1.803}** & \num{0.191} \\
+& (\num{0.690}) & (\num{0.434}) & (\num{0.738}) & (\num{1.165}) \\
+Crisis (t-2) & \num{1.510}** & \num{1.174}*** & \num{1.357}* & \num{0.697} \\
+& (\num{0.673}) & (\num{0.428}) & (\num{0.706}) & (\num{1.110}) \\
+Crisis (t-3) & \num{1.413}** & \num{0.727}* & \num{-0.425} & \num{2.538}** \\
+& (\num{0.554}) & (\num{0.416}) & (\num{0.551}) & (\num{1.029}) \\
+Num.Obs. & \num{666} & \num{629} & \num{664} & \num{666} \\
+R2 & \num{0.088} & \num{0.162} & \num{0.040} & \num{0.017} \\
+R2 Adj. & \num{0.058} & \num{0.134} & \num{0.008} & \num{-0.015} \\
+\bottomrule
+\end{talltblr}
+\end{table}
