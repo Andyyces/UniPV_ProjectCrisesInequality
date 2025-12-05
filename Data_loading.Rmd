@@ -83,15 +83,17 @@ WDIsearch('trade') #NE.TRD.GNFS.ZS - Trade (% of GDP)
 WDIsearch('unemployment') #JI.UEM.1564.ZS - Unemployment rate, aged 15-64, total (% of total labor force in working age)
 WDIsearch("fiscal") #GC.BAL.CASH.CD - Fiscal balance, cash surplus/deficit (current US$)
 WDIsearch("Central government debt") #GC.DOD.TOTL.GD.ZS - Central government debt, total (% of GDP)
-
+WDIsearch("school enrollment") #"SE.SEC.ENRR" - School enrollment, secondary (% gross)
+#"NY.GDP.PCAP.KD" - GDP per capita
 
 data_wdi <- WDI(latam_codes2,
                 c("NY.GDP.MKTP.KD.ZG",
                   "NY.GDP.DEFL.KD.ZG", 
                   "NE.TRD.GNFS.ZS", 
-                  "JI.UEM.1564.ZS", 
-                  "GC.BAL.CASH.CD", #Did not work on 30.11. for some reason -> could be server issue, I am solving later
-                  "GC.DOD.TOTL.GD.ZS"),
+                  "JI.UEM.1564.ZS",
+                  "GC.DOD.TOTL.GD.ZS",
+                  "SE.SEC.ENRR",
+                  "NY.GDP.PCAP.KD"),
                 start = 1960,
                 end = 2019)
 ```

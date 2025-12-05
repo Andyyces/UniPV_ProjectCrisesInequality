@@ -254,8 +254,9 @@ crisis_models_controls <- function(outcome, crisis_type, data, controls_string) 
       index = c("country", "year"),
       model = "within")
 }
+combined_data$NY.GDP.PCAP.KD.LOG <- log(combined_data$NY.GDP.PCAP.KD)
 
-my_controls <- "NY.GDP.DEFL.KD.ZG + NE.TRD.GNFS.ZS + JI.UEM.1564.ZS"
+my_controls <- "NY.GDP.PCAP.KD.LOG + NE.TRD.GNFS.ZS + SE.SEC.ENRR"
 ```
 
 #### Dependent: GDP Growth
@@ -298,7 +299,9 @@ coef_map_controls <- c(
   # Control variables
   "NY.GDP.DEFL.KD.ZG" = "Inflation (GDP deflator)",
   "NE.TRD.GNFS.ZS" = "Trade openness",
-  "JI.UEM.1564.ZS" = "Unemployment"
+  "JI.UEM.1564.ZS" = "Unemployment",
+  "SE.SEC.ENRR" = "School enrollment",
+  "NY.GDP.PCAP.KD.LOG" = "Log of GDP per capita"
 )
 
 # Creating the table
@@ -310,6 +313,7 @@ modelsummary(
   coef_map = coef_map_controls,
   stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
   gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  fmt = 4,
   title = "Effects of Financial Crises on GDP Growth (with Controls)",
   notes = "Dependent variable: GDP growth (annual %)",
   output = "Output/Tables/crisis_growth_controls.tex"
@@ -338,10 +342,12 @@ modelsummary(
   coef_map = coef_map_controls,
   stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
   gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  fmt = 4,
   title = "Effects of Financial Crises on Income Inequality (with Controls)",
   notes = "Pre-tax income share, bottom 50% (adults 20+)",
   output = "Output/Tables/crisis_bottom50_controls.tex"
 )
+
 ```
 
 #### Dependent: TOP 1%
@@ -365,6 +371,7 @@ modelsummary(
   coef_map = coef_map_controls,
   stars = c('*' = 0.1, '**' = 0.05, '***' = 0.01),
   gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  fmt = 4,
   title = "Effects of Financial Crises on Income Inequality (with Controls)",
   notes = "Dependent variable: Pre-tax income share, top 1% (adults 20+)",
   output = "Output/Tables/crisis_top1_controls.tex"
