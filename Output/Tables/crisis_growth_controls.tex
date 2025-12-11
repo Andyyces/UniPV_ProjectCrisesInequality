@@ -1,0 +1,35 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Effects of Financial Crises on GDP Growth (with Controls)},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Dependent variable: GDP growth (annual \%)},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{16}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Banking & Currency & Debt & Twin \\ \midrule %% TinyTableHeader
+Crisis (t) & \num{-2.8695}*** & \num{-4.4192}*** & \num{-1.6256}* & \num{-1.3533} \\
+& (\num{0.9323}) & (\num{0.6885}) & (\num{0.8723}) & (\num{1.4260}) \\
+Crisis (t-1) & \num{1.0524} & \num{-2.3792}*** & \num{1.1853} & \num{0.2912} \\
+& (\num{1.0226}) & (\num{0.6353}) & (\num{1.0275}) & (\num{1.5252}) \\
+Crisis (t-2) & \num{2.5568}*** & \num{1.4738}** & \num{1.7814}* & \num{1.5653} \\
+& (\num{0.9723}) & (\num{0.6475}) & (\num{0.9606}) & (\num{1.4996}) \\
+Crisis (t-3) & \num{1.7310}** & \num{0.4597} & \num{-0.8789} & \num{2.5132}* \\
+& (\num{0.8353}) & (\num{0.6255}) & (\num{0.7406}) & (\num{1.4811}) \\
+Trade openness & \num{0.0484}*** & \num{0.0554}*** & \num{0.0465}*** & \num{0.0493}*** \\
+& (\num{0.0116}) & (\num{0.0114}) & (\num{0.0122}) & (\num{0.0121}) \\
+School enrollment & \num{-0.0422}** & \num{-0.0659}*** & \num{-0.0549}*** & \num{-0.0508}*** \\
+& (\num{0.0183}) & (\num{0.0173}) & (\num{0.0192}) & (\num{0.0193}) \\
+Log of GDP per capita & \num{5.3360}*** & \num{4.8529}*** & \num{5.5894}*** & \num{5.2325}*** \\
+& (\num{1.1500}) & (\num{1.1299}) & (\num{1.1948}) & (\num{1.1461}) \\
+Num.Obs. & \num{430} & \num{394} & \num{429} & \num{430} \\
+R2 & \num{0.169} & \num{0.237} & \num{0.114} & \num{0.108} \\
+R2 Adj. & \num{0.120} & \num{0.190} & \num{0.061} & \num{0.055} \\
+\bottomrule
+\end{talltblr}
+\end{table}

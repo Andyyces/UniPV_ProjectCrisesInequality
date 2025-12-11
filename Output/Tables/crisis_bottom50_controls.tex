@@ -1,0 +1,35 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Effects of Financial Crises on Income Inequality (with Controls)},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{ }={Pre-tax income share, bottom 50\% (adults 20+)},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{16}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Banking & Currency & Debt & Twin \\ \midrule %% TinyTableHeader
+Crisis (t) & \num{-0.0039}* & \num{0.0036}* & \num{0.0026} & \num{0.0037} \\
+& (\num{0.0023}) & (\num{0.0019}) & (\num{0.0021}) & (\num{0.0034}) \\
+Crisis (t-1) & \num{-0.0021} & \num{0.0030}* & \num{-0.0013} & \num{0.0033} \\
+& (\num{0.0025}) & (\num{0.0017}) & (\num{0.0024}) & (\num{0.0037}) \\
+Crisis (t-2) & \num{-0.0005} & \num{0.0012} & \num{0.0033} & \num{0.0019} \\
+& (\num{0.0024}) & (\num{0.0018}) & (\num{0.0023}) & (\num{0.0036}) \\
+Crisis (t-3) & \num{-0.0048}** & \num{0.0012} & \num{0.0025} & \num{0.0011} \\
+& (\num{0.0021}) & (\num{0.0017}) & (\num{0.0017}) & (\num{0.0036}) \\
+Trade openness & \num{-0.0000} & \num{0.0000} & \num{-0.0000} & \num{-0.0000} \\
+& (\num{0.0000}) & (\num{0.0000}) & (\num{0.0000}) & (\num{0.0000}) \\
+School enrollment & \num{0.0001}* & \num{0.0001}*** & \num{0.0001}*** & \num{0.0001}** \\
+& (\num{0.0000}) & (\num{0.0000}) & (\num{0.0000}) & (\num{0.0000}) \\
+Log of GDP per capita & \num{0.0307}*** & \num{0.0303}*** & \num{0.0368}*** & \num{0.0333}*** \\
+& (\num{0.0028}) & (\num{0.0031}) & (\num{0.0028}) & (\num{0.0028}) \\
+Num.Obs. & \num{430} & \num{394} & \num{429} & \num{430} \\
+R2 & \num{0.463} & \num{0.413} & \num{0.469} & \num{0.447} \\
+R2 Adj. & \num{0.431} & \num{0.376} & \num{0.437} & \num{0.414} \\
+\bottomrule
+\end{talltblr}
+\end{table}
