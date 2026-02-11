@@ -1,0 +1,185 @@
+---
+title: "Institutional quality"
+output: html_document
+---
+
+```{r}
+# Load required packages
+library(pacman)           
+p_load(tidyverse, 
+       janitor, 
+       ggthemes, 
+       scales,
+       here,
+       ggrepel)
+```
+
+```{r}
+# Load RDS files
+crisis_long <- readRDS(here("Data", "Clean", "crisis_long.rds"))
+combined_data <- readRDS(here("Data", "Clean", "combined_data.rds"))
+```
+
+```{r}
+# Rename variables for clarity based on WID and World Bank definitions
+combined_data <- combined_data %>%
+  rename(
+    # === WEALTH VARIABLES (Average amounts) ===
+    # Bottom 50%
+    avg_wealth_bottom50_adults = ahweal992j_p0p50,      # Average household wealth, bottom 50% (adults)
+    avg_wealth_bottom50_all = ahweal999j_p0p50,         # Average household wealth, bottom 50% (all ages)
+    
+    # Top 1%
+    avg_wealth_top1_adults = ahweal992j_p99p100,        # Average household wealth, top 1% (adults)
+    avg_wealth_top1_all = ahweal999j_p99p100,           # Average household wealth, top 1% (all ages)
+    
+    # === INCOME VARIABLES (Average amounts) ===
+    # Bottom 50%
+    avg_income_bottom50_adults = aptinc992j_p0p50,      # Average pre-tax income, bottom 50% (adults 20+)
+    avg_income_bottom50_all = aptinc999j_p0p50,         # Average pre-tax income, bottom 50% (all ages)
+    
+    # Top 1%
+    avg_income_top1_adults = aptinc992j_p99p100,        # Average pre-tax income, top 1% (adults 20+)
+    avg_income_top1_all = aptinc999j_p99p100,           # Average pre-tax income, top 1% (all ages)
+    
+    # === WEALTH SHARES (%) ===
+    wealth_share_bottom50_adults = shweal992j_p0p50,
+    wealth_share_bottom50_all = shweal999j_p0p50,
+    wealth_share_top1_adults = shweal992j_p99p100,
+    wealth_share_top1_all = shweal999j_p99p100,
+    
+    # === INCOME SHARES (%) ===
+    income_share_bottom50_adults = sptinc992j_p0p50,
+    income_share_bottom50_all = sptinc999j_p0p50,
+    income_share_top1_adults = sptinc992j_p99p100,
+    income_share_top1_all = sptinc999j_p99p100,
+    
+    # === MACROECONOMIC INDICATORS ===
+    gdp_growth = NY.GDP.MKTP.KD.ZG,                     # GDP growth (annual %)
+    gdp_deflator = NY.GDP.DEFL.KD.ZG,                   # Inflation measure
+    trade_pct_gdp = NE.TRD.GNFS.ZS,                     # Trade openness
+    unemployment_rate = JI.UEM.1564.ZS,                 # Unemployment, ages 15-64
+    govt_debt_pct_gdp = GC.DOD.TOTL.GD.ZS              # Central government debt
+  )
+```
+
+```{r}
+combined_data <- combined_data %>%
+mutate(region_group = case_when(
+    region == "Central America" ~ "Caribbean",
+    country %in% c("Argentina", "Chile", "Paraguay", "Uruguay") ~ "South Cone",
+    country %in% c("Colombia", "Peru", "Venezuela", "Ecuador", "Bolivia", 
+                   "Guyana", "Suriname", "French Guiana", "Brazil") ~ "Andes & Amazons",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(region_group)) %>%
+  # CRITICAL: Set factor BEFORE pivot
+  mutate(region_group = forcats::fct_relevel(region_group, 
+                                              "Caribbean", "Andes & Amazons", "South Cone"))
+
+```
+
+```{r}
+InstQuality <- read.csv("~/Downloads/P_Institutional Quality (1)/52533549-49c5-47e8-8c57-f9afaa1a8ae8_Data.csv")
+
+InstQuality <- InstQuality[, !(names(InstQuality) %in% c("Country.Code", "Time.Code"))]
+colnames(InstQuality)[3:8] <- c(
+  "Control of Corruption",
+  "Gov Effectiveness",    
+  "Political Stability",
+  "Regulatory Quality",
+  "Rule of Law",
+  "Voice and Accountability"
+)
+
+InstQuality$Institutional_Quality <- rowMeans(InstQuality[, 3:8], na.rm = TRUE)
+
+
+
+```
+
+```{r}
+combined_data_filtered <- combined_data[combined_data$year >= 1996, ]
+
+cols_to_keep <- c("country", "year", "NY.GDP.PCAP.KD", 
+                  "all_crises", "region", "region_group")
+
+combined_data_subset <- combined_data_filtered[, cols_to_keep]
+
+# 3. Merge the two dataframes
+# We merge by matching:
+# combined_data$country <--> InstQuality$Country.Name
+# combined_data$year    <--> InstQuality$Time
+
+merged_df <- merge(
+  combined_data_subset, 
+  InstQuality, 
+  by.x = c("country", "year"), 
+  by.y = c("Country.Name", "Time"),
+  all = FALSE  # Change to all.x = TRUE if you want to keep rows from combined_data even if they lack quality data
+)
+
+ggplot(merged_df, aes(x = NY.GDP.PCAP.KD, y = Institutional_Quality)) +
+  geom_point(color = "firebrick", alpha = 0.6) + 
+  facet_wrap(~ region_group) + 
+  theme_economist() + 
+  labs(
+    title = "Institutional Quality vs GDP Per Capita",
+    x = "GDP Per Capita",
+    y = "Institutional Quality Index"
+  )
+```
+
+```{r}
+country_avg <- merged_df %>%
+  group_by(country, region_group) %>%
+  summarise(
+    avg_inst_quality = mean(Institutional_Quality, na.rm = TRUE),
+    avg_gdp_pcap = mean(NY.GDP.PCAP.KD, na.rm = TRUE),
+    .groups = "drop" # Ungroup after summarizing
+  )
+
+# 2. Plot
+p1 <- ggplot(country_avg, aes(x = avg_gdp_pcap, y = avg_inst_quality)) +
+  geom_point(color = "firebrick", size = 3) +
+  
+  # Labels
+  geom_text_repel(aes(label = country), size = 3, box.padding = 0.5) +
+  
+  facet_wrap(~ region_group, scales = "free_x") + 
+  theme_economist() +
+  
+  # Fine-tuning the theme for spacing
+  theme(
+    # Space between axis titles and the axis text (numbers)
+    axis.title.x = element_text(margin = margin(t = 15)), 
+    axis.title.y = element_text(margin = margin(r = 15)),
+    
+    # Space between plot title and the facets
+    plot.title = element_text(margin = margin(b = 20)),
+    
+    # Horizontal space between facets
+    panel.spacing.x = unit(2, "lines"),
+    
+    # Reduce size of X-axis numbers
+    axis.text.x = element_text(size = 8) 
+  ) +
+  
+  labs(
+    title = "Average Institutional Quality vs GDP (1996-Present)",
+    x = "GDP Per Capita",
+    y = "Institutional Quality Index"
+  )
+
+ggsave(
+  filename = here("Output", "Figures", "Institutions Graph.png"),
+  plot = p1,
+  width = 7,
+  height = 5.5,
+  dpi = 300,
+  bg = "white"
+)
+
+```
+
+
